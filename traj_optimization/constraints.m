@@ -1,4 +1,4 @@
-function [C, Ceq] = constraints(x, D, tf, n, BCs)
+function [C, Ceq, Force, F_ad_canopy_w] = constraints(x, D, n, BCs)
 
    global atmos_table canopy_radius_uninflated_R0 canopy_radius_inflated_Rp canopy_shape_ratio_epsilon canopy_cop_zp k11 k33 k44 k15 k66...
     system_mass system_com  K system_Ixx system_Iyy system_Izz
@@ -45,6 +45,8 @@ function [C, Ceq] = constraints(x, D, tf, n, BCs)
    Cx = x(12*n +1 : 13*n);
    Cy = x(13*n +1 : 14*n);
    Cz = x(14*n+1 : 15*n);
+
+   tf = x(15*n + 1);
 
    %% Calculating apparent mass tensor elements
     g = 9.81;
@@ -161,8 +163,8 @@ function [C, Ceq] = constraints(x, D, tf, n, BCs)
    Ceq12 = D1*r - (Moment(2*n+1:3*n) - (system_Iyy - system_Ixx).*p.*q) .* (1/(system_Izz + alpha_66));
 
    Ceq13 = x_pos(1) - x_pos_initial;
-   Ceq14 = y_pos(2) - y_pos_initial;
-   Ceq15 = z_pos(3) - z_pos_initial;
+   Ceq14 = y_pos(1) - y_pos_initial;
+   Ceq15 = z_pos(1) - z_pos_initial;
    Ceq16 = u(1) - u_initial;
    Ceq17 = v(1) - v_initial;
    Ceq18 = w(1) - w_initial;
@@ -176,9 +178,13 @@ function [C, Ceq] = constraints(x, D, tf, n, BCs)
    Ceq25 = x_pos(n) - x_pos_final;
    Ceq26 = y_pos(n) - y_pos_final;
    Ceq27 = z_pos(n) - z_pos_final;
-   Ceq28 = u(n) - u_final;
+
+   Ceq28 = abs(u(n)) - u_final; %
+
    Ceq29 = v(n) - v_final;
-   Ceq30 = w(n) - w_final;
+
+   Ceq30 = abs(w(n)) - w_final;   %
+
    Ceq31 = phi(n) - phi_final;
    Ceq32 = theta(n) - theta_final;
    Ceq33 = psi(n) - psi_final;
@@ -186,13 +192,12 @@ function [C, Ceq] = constraints(x, D, tf, n, BCs)
    Ceq35 = q(n) - q_final;
    Ceq36 = r(n) - r_final;
 
-   Ceq37 = u(n) - 5;
-   Ceq38 = w(n) - 5;
 
-   C = [Ceq37; Ceq38];
+   % C = [Ceq28; Ceq30]; % lesser than zero constraints
+    C = [];
+   Ceq = [Ceq1; Ceq2; Ceq3; Ceq4; Ceq5; Ceq6; Ceq7; Ceq8; Ceq9; Ceq10; Ceq11; Ceq12;
+       Ceq13; Ceq14; Ceq15; Ceq16; Ceq17; Ceq18; Ceq27];   %equality constraints
 
-   Ceq = [Ceq1; Ceq2; Ceq3; Ceq4; Ceq5; Ceq6; Ceq7; Ceq8;...
-          Ceq9; Ceq10; Ceq11; Ceq12; Ceq13; Ceq15;...
-          Ceq25; Ceq27];
 
+   % keyboard
 end
