@@ -196,7 +196,7 @@ function [C, Ceq, Force, F_ad_canopy_w] = constraints(x, D, n, BCs)
    % C = [Ceq28; Ceq30]; % lesser than zero constraints
     C = [];
    Ceq = [Ceq1; Ceq2; Ceq3; Ceq4; Ceq5; Ceq6; Ceq7; Ceq8; Ceq9; Ceq10; Ceq11; Ceq12;
-       Ceq13; Ceq14; Ceq15; Ceq16; Ceq17; Ceq18; Ceq27];   %equality constraints
+       Ceq13; Ceq14; Ceq15; Ceq16; Ceq17; Ceq18; Ceq25; Ceq27];   %equality constraints
 
 
    % keyboard

@@ -9,10 +9,10 @@ t0              = 0;
 % tf = 300;
 
 %% Initial and final conditions
-x_pos_initial   = 0;
+x_pos_initial   = 50;
 y_pos_initial   = 0;
 z_pos_initial   = 1000;
-u_initial       = 0.0;
+u_initial       = 0.1;
 v_initial       = 0;
 w_initial       = 0;
 phi_initial     = 0;
@@ -79,14 +79,14 @@ BCs = [initial_BCs; final_BCs];
 options = optimoptions('fmincon', 'Display','iter', 'MaxFunctionEvaluations', 1e6, 'MaxIterations', 1000);
 
 
-lb = [0*ones(n,1); 0*ones(n,1); 0*ones(n,1); 0*ones(n,1); 0*ones(n,1); -100*ones(n,1);
+lb = [-100*ones(n,1); 0*ones(n,1); 0*ones(n,1); -10*ones(n,1); 0*ones(n,1); -100*ones(n,1);
     -0.5*pi*ones(n,1); -0.5*pi*ones(n,1); -0.5*pi*ones(n,1); -0.5*pi*ones(n,1); -0.5*pi*ones(n,1); -0.5*pi*ones(n,1); -100000*ones(n,1);
     0*ones(n,1); -100000*ones(n,1); 0];
 
-ub = [1000*ones(n,1); 0*ones(n,1); 1500*ones(n,1); 100*ones(n,1); 0*ones(n,1); 100*ones(n,1);
+ub = [100*ones(n,1); 0*ones(n,1); 1500*ones(n,1); 10*ones(n,1); 0*ones(n,1); 100*ones(n,1);
     0.5*pi*ones(n,1); 0.5*pi*ones(n,1); 0.5*pi*ones(n,1); 0.5*pi*ones(n,1); 0.5*pi*ones(n,1); 0.5*pi*ones(n,1); 100000*ones(n,1);
     0*ones(n,1); 100000*ones(n,1); 2000];
-keyboard
+
 [x, fval] = fmincon(@(x) objective(x, n), x0, [], [], [], [], lb, ub, @(x) constraints(x, D, n, BCs), options);
 
 x_pos_result = x(1:n);
@@ -110,8 +110,6 @@ t1  = legslb(n);
 tt1 = ((tf-t0).*t1+(tf+t0))./2;
 
 constraints(x, D, n, BCs)
-
-
 
 figure(1);
 plot(tt1, x_pos_result)
