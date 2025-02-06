@@ -9,9 +9,9 @@ t0              = 0;
 % tf = 300;
 
 %% Initial and final conditions
-x_pos_initial   = 50;
+x_pos_initial   = 1000;
 y_pos_initial   = 0;
-z_pos_initial   = 1000;
+z_pos_initial   = 1700;
 u_initial       = 0.1;
 v_initial       = 0;
 w_initial       = 0;
@@ -73,17 +73,19 @@ tf_guess    = 100;
 x0          = [x_pos_guess; y_pos_guess; z_pos_guess; u_guess; v_guess; w_guess; phi_guess;...
     theta_guess; psi_guess; p_guess; q_guess; r_guess; Cx_guess; Cy_guess; Cz_guess; tf_guess];
 
+%new_guess = getGuess();
+
 
 BCs = [initial_BCs; final_BCs];
 
-options = optimoptions('fmincon', 'Display','iter', 'MaxFunctionEvaluations', 1e6, 'MaxIterations', 1000);
+options = optimoptions('fmincon', 'Display','iter', 'MaxFunctionEvaluations', 1e6, 'MaxIterations', 3000);
 
 
-lb = [-100*ones(n,1); 0*ones(n,1); 0*ones(n,1); -10*ones(n,1); 0*ones(n,1); -100*ones(n,1);
+lb = [-1200*ones(n,1); 0*ones(n,1); 0*ones(n,1); -5*ones(n,1); 0*ones(n,1); -100*ones(n,1);
     -0.5*pi*ones(n,1); -0.5*pi*ones(n,1); -0.5*pi*ones(n,1); -0.5*pi*ones(n,1); -0.5*pi*ones(n,1); -0.5*pi*ones(n,1); -100000*ones(n,1);
     0*ones(n,1); -100000*ones(n,1); 0];
 
-ub = [100*ones(n,1); 0*ones(n,1); 1500*ones(n,1); 10*ones(n,1); 0*ones(n,1); 100*ones(n,1);
+ub = [1200*ones(n,1); 0*ones(n,1); 2000*ones(n,1); 5*ones(n,1); 0*ones(n,1); 100*ones(n,1);
     0.5*pi*ones(n,1); 0.5*pi*ones(n,1); 0.5*pi*ones(n,1); 0.5*pi*ones(n,1); 0.5*pi*ones(n,1); 0.5*pi*ones(n,1); 100000*ones(n,1);
     0*ones(n,1); 100000*ones(n,1); 2000];
 
@@ -107,16 +109,17 @@ Cz_result = x(14*n+1 : 15*n);
 tf = x(15*n + 1);
 
 t1  = legslb(n);
-tt1 = ((tf-t0).*t1+(tf+t0))./2;
+tt1 = (t1*(tf-t0)+(tf+t0))./2;
 
-constraints(x, D, n, BCs)
-
+%%
 figure(1);
-plot(tt1, x_pos_result)
+plot(tt1, x_pos_result, LineWidth=2)
+title("X Postion(m)")
 % figure(2);
 % plot(tt1, y_pos_result)
 figure(3);
-plot(tt1, z_pos_result)
+plot(tt1, z_pos_result, LineWidth=2)
+title("Z Position(m)")
 figure(4);
 plot(tt1, u_result)
 % figure(5);
@@ -130,25 +133,34 @@ plot(tt1, Cx_result)
 figure(8);
 plot(tt1, Cz_result)
 
+figure(9);
+plot(x_pos_result, z_pos_result, LineWidth=1.5);
+title("Z pos vs X pos")
+xlabel("X pos")
+ylabel("Z pos")
+
 % plot(tt1, z_pos_result)
 % plot(tt1, z_pos_result)
 % plot(tt1, z_pos_result)
 
 %%
-% step_size = 0.1;
-% tspan = 0:step_size:300;
-% t1 = legslb(n);
-% tt1 = ((tf-t0).*t1 + (tf+t0)./2);
-%
-% Option = odeset('Events',@Zero_height_event_payload);
-%
-% function [value, isterminal, direction] = Zero_height_event_payload(t,x)
-%     value = (x(3) <= 0);
-%     isterminal = 1;
-%     direction = 0;
+tspan = 0:0.01:tf;
+Option = odeset('Events',@Zero_height_event_payload);
+
+function [value, isterminal, direction] = Zero_height_event_payload(t,x)
+    value = (x(3) <= 0);
+    isterminal = 1;
+    direction = 0;
+end
+
+% function [CX, CY, CZ] = input_function(Cx_result, Cy_result, Cz_result,  tt1)
+%     CX = interp1(tt1, Cx_result, tt1, 'linear', 'extrap');
+%     CY = interp1(tt1, Cy_result, tt1, 'linear', 'extrap');
+%     CZ = interp1(tt1, Cz_result, tt1, 'linear', 'extrap');
+% 
 % end
-%
-% [t, x_ode] = ode45(@(t,x) parachute_dynamics_w_inputs(t, x, tt1, Cx_result, Cy_result, Cz_result), tspan, initial_BCs(1:12), Option);
+
+[t, X_tm] = ode45(@(t, X) parachute_dynamics_w_inputs(t, X, tt1, Cx_result, Cy_result, Cz_result), tspan, initial_BCs(1:12), Option);
 
 %%
 %

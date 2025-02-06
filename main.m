@@ -4,6 +4,7 @@ step_size = 0.1;
 tspan = 0:step_size:300;
 
 x0 = [0; 0; 3000; 0; 0; 1; 0; 0; deg2rad(180); 0; 0; 0];
+U = [0; 0; 0; 0];
 Option = odeset('Events',@Zero_height_event_payload);
 
 function [value, isterminal, direction] = Zero_height_event_payload(t,x) 
@@ -12,7 +13,7 @@ function [value, isterminal, direction] = Zero_height_event_payload(t,x)
     direction = 0;
 end
 
-[t, x] = ode45(@parachute_dynamics, tspan, x0, Option);
+[t, x] = ode45(@(t,x) parachute_dynamics_2(t, x, U), tspan, x0, Option);
 
 % [~, aoa_series] = parachute_dynamics_2(t,x);
 %%

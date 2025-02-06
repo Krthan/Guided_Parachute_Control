@@ -103,12 +103,12 @@ function dxdt = parachute_dynamics_w_inputs(t, x, tt1, Cx, Cy, Cz)
 
     [C_roll, C_pitch] = coeff_moment(sideslip_angle, aoa);
 
-
     C_yaw = 0;
 
     %{
     M = M_ad + Summation(M_G)
     %}
+
 
     M_ad_canopy = 2 * dynamic_pressure * S0 * canopy_radius_uninflated_R0 * [C_roll; C_pitch; C_yaw];
     M_ad_risers = [Force_riser_y * canopy_cop_zp; - Force_riser_x * canopy_cop_zp; 0];
