@@ -2,15 +2,15 @@ function [Forces, Moments] = Forces_n_Moments(x, U)
 
     global atmos_table canopy_radius_uninflated_R0 canopy_cop_zp system_mass system_com 
     
-    x_pos = x(1); y_pos = x(2); z_pos = x(3); %postion variables
+    x_pos = x(:,1); y_pos = x(:,2); z_pos = x(:,3); %postion variables
     
-    u = x(4); v = x(5); w = x(6); %velocity variables 
+    u = x(:,4); v = x(:,5); w = x(:,6); %velocity variables 
     
-    phi = x(7); theta = x(8); psi = x(9); %attitude/euler angles variables
+    phi = x(:,7); theta = x(:,8); psi = x(:,9); %attitude/euler angles variables
     
-    p = x(10); q = x(11); r = x(12);  % body angular rate variables
+    p = x(:,10); q = x(:,11); r = x(:,12);  % body angular rate variables
 
-    l_1 = U(1); l_2 = U(2); l_3 = U(3); l_4 = U(4); %inputs - relative length of PMAs
+    Cx = U(:,1); Cy = U(:,2); Cz = U(:,3); %inputs - control forces
 
     %% Density variation (if any, else fix as 1.225 kg/m^3)
 
@@ -23,69 +23,79 @@ function [Forces, Moments] = Forces_n_Moments(x, U)
 
     %% Calculating total velocity and angles in degrees
     
-    V_total = sqrt(u^2 + v^2 + w^2); %total velocity
+    V_total = sqrt(u.^2 + v.^2 + w.^2); %total velocity
 
-    aoa_spatial = acosd(w/V_total); %spatial angle of attack 
+    aoa_spatial = acosd(w./V_total); %spatial angle of attack 
 
-    aoa = atand(u/w); %angle of attack (ang between resultant vector and z-axis)
+    aoa = atand(u./w); %angle of attack (ang between resultant vector and z-axis)
 
-    sideslip_angle = atand(v/sqrt(u^2 + w^2)); %sideslip angle
+    sideslip_angle = atand(v./sqrt(u.^2 + w.^2)); %sideslip angle
    
     %% Drag coefficient calculation
-    CD = -1.975e-07 * aoa_spatial^4 - 3.037e-08 * aoa_spatial^3 + 3.129e-04 * aoa_spatial^2 + 2.918e-05 * aoa_spatial + 0.614;
-
-    if abs(aoa_spatial) > 30
-        CD = 0.72;
+    function CD = coeff_drag(aoa_spatial)
+        n = length(aoa_spatial);
+        CD = zeros(n,1);
+        for i = 1:n
+            if aoa_spatial(i) > 30
+                CD(i) = 0.72;
+            else
+                CD(i) = -1.975e-07 * aoa_spatial(i)^4 - 3.037e-08 * aoa_spatial(i)^3 + 3.129e-04 * aoa_spatial(i)^2 + 2.918e-05 * aoa_spatial(i) + 0.614;
+            end
+        end
     end
+
+    CD = coeff_drag(aoa_spatial);
 
     %% Forces calculation
 
-    dynamic_pressure = 0.5 * density * V_total^2;
+    dynamic_pressure = 0.5 * density * V_total.^2;
     S0 = pi * canopy_radius_uninflated_R0^2;
-    F_ad_canopy = -CD * dynamic_pressure * (S0/V_total) * [u; v; w];
-    disp(size(F_ad_canopy))
+    F_ad_canopy = [-CD .* dynamic_pressure .* (S0./V_total) .* u; -CD .* dynamic_pressure .* (S0./V_total) .* v; -CD .* dynamic_pressure .* (S0./V_total) .* w];
 
+    %Implementing Cz for now, in paper Cz is made to be zero(ie. the controllers only produces planar motion)
+    
+    F_ad_risers = [Cx; Cy; Cz];
 
-    %Force magnitude and its direction in the x-y plane
-    [F_mag_risers, direction] = Lengths_2_Riser_Force(U);
-
-    % Aerodynamic force is zero for now, can look into further papers to
-    % devise a force along the z direction due to change in canopy shape
-    F_ad_risers = [F_mag_risers * direction; 0];
-
-    F_gravitational = system_mass * g * [-sin(theta); sin(phi)*cos(theta); cos(phi)*cos(theta)];
+    F_gravitational = system_mass * g * [-sin(theta); sin(phi).*cos(theta); cos(phi).*cos(theta)];
 
     Forces = F_ad_canopy + F_ad_risers + F_gravitational;
 
     %% Calculating Moment Coefficients
 
     function [C_roll, C_pitch] = coeff_moment(beta, alpha)
-        if abs(beta) > 35
-            C_roll = - beta/(abs(beta)) * 0.02;
-            C_pitch = 1.142e-09 * alpha^4 - 2.100e-06 * alpha^3 - 1.578e-06 * alpha^2 + 2.223e-03 * alpha;
+        n = length(beta);
+        C_roll = zeros(n,1);
+        C_pitch = zeros(n,1);
 
-        elseif abs(alpha) > 35
-            C_roll = 1.142e-09 * beta^4 - 2.100e-06 * beta^3 - 1.578e-06 * beta^2 + 2.223e-03 * beta;
-            C_pitch = - alpha/(abs(alpha)) * 0.02;
+        for i = 1:n
+            if abs(beta(i)) > 35
+                C_roll(i) = - beta(i)/(abs(beta(i))) * 0.02;
+                C_pitch(i) = 1.142e-09 * alpha(i)^4 - 2.100e-06 * alpha(i)^3 - 1.578e-06 * alpha(i)^2 + 2.223e-03 * alpha(i);
+            
+            elseif abs(alpha(i)) > 35
+                C_roll(i) = 1.142e-09 * beta(i)^4 - 2.100e-06 * beta(i)^3 - 1.578e-06 * beta(i)^2 + 2.223e-03 * beta(i);
+                C_pitch(i) = - alpha(i)/(abs(alpha(i))) * 0.02;
 
-        elseif (abs(beta) > 35 & abs(alpha) > 35)
-            C_pitch = - alpha/(abs(alpha)) * 0.0;
-            C_roll = - beta/(abs(beta)) * 0.0;
+            elseif (abs(beta(i)) > 35 & abs(alpha(i)) > 35)
+                C_pitch(i) = - alpha(i)/(abs(alpha(i))) * 0.0;
+                C_roll(i) = - beta(i)/(abs(beta(i))) * 0.0;
 
-        else
-            C_roll = 1.142e-09 * beta^4 - 2.100e-06 * beta^3 - 1.578e-06 * beta^2 + 2.223e-03 * beta;
-            C_pitch = 1.142e-09 * alpha^4 - 2.100e-06 * alpha^3 - 1.578e-06 * alpha^2 + 2.223e-03 * alpha;
+            else
+                C_roll(i) = 1.142e-09 * beta(i)^4 - 2.100e-06 * beta(i)^3 - 1.578e-06 * beta(i)^2 + 2.223e-03 * beta(i);
+                C_pitch(i) = 1.142e-09 * alpha(i)^4 - 2.100e-06 * alpha(i)^3 - 1.578e-06 * alpha(i)^2 + 2.223e-03 * alpha(i);
+            end
         end
     end
 
     [C_roll, C_pitch] = coeff_moment(sideslip_angle, aoa);
 
-    C_yaw = 0; 
+    n = length(aoa);
+    C_yaw = 0*ones(n,1); 
 
     %% Moments Calculation
 
-    M_ad_canopy = 2 * dynamic_pressure * S0 * canopy_radius_uninflated_R0 * [C_roll; C_pitch; C_yaw];
-    M_ad_risers = [F_ad_risers(2) * canopy_cop_zp; -F_ad_risers(1) * canopy_cop_zp; 0];
+    M_ad_canopy = [2 * S0 * canopy_radius_uninflated_R0 * dynamic_pressure .* C_roll; 2 * S0 * canopy_radius_uninflated_R0 * dynamic_pressure .*C_pitch; 2 * S0 * canopy_radius_uninflated_R0 * dynamic_pressure .* C_yaw];
+    M_ad_risers = [Cy * canopy_cop_zp; -Cx * canopy_cop_zp; 0*ones(n,1)];
 
     %{
         M_ad_risers = [0; 0; zp] X F_risers
@@ -93,7 +103,7 @@ function [Forces, Moments] = Forces_n_Moments(x, U)
 
     M_ad = M_ad_canopy + M_ad_risers;
 
-    M_gravitational = [F_gravitational(2,1)*system_com; -F_gravitational(1,1)*system_com; 0];
+    M_gravitational = [F_gravitational(n+1:2*n)*system_com; -F_gravitational(1:n)*system_com; 0*ones(n,1)];
 
     Moments = M_ad + M_gravitational;
 
