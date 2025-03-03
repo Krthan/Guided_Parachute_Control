@@ -1,14 +1,24 @@
-function dxdt = parachute_dynamics_2(x, U)
+function dxdt = parachute_dynamics_2(t, x, U,  tt1, flag)
     
     global atmos_table canopy_radius_uninflated_R0 canopy_radius_inflated_Rp canopy_shape_ratio_epsilon canopy_cop_zp k11 k33 k44 k15 k66...
     system_mass system_com  K system_Ixx system_Iyy system_Izz
 
+
+    if flag == 1 % if flag is 1, we use it for the ode solver, 
+        %/ ode45 converts the input which is a row vector to a column vector for its solving,
+        % but here we convert it back into a row vector, to use it with the same dynamics file
+        % /%
+        x = x';
+        %U = splineInterpolation(tt1, U, t);
+        U = lagrangeInterpolation(tt1, U, t);
+    end
+    % this runs for psm solver
     x_pos = x(:,1); y_pos = x(:,2); z_pos = x(:,3); %postion variables
-    
+        
     u = x(:,4); v = x(:,5); w = x(:,6); %velocity variables 
-    
+        
     phi = x(:,7); theta = x(:,8); psi = x(:,9); %attitude/euler angles variables
-    
+        
     p = x(:,10); q = x(:,11); r = x(:,12);  % body angular rate variables
 
     Cx = U(:,1); Cy = U(:,2); Cz = U(:,3);
@@ -20,7 +30,7 @@ function dxdt = parachute_dynamics_2(x, U)
 
 
     %% Calculating apparent mass tensor elements
-    g = 9.81; 
+
     ma = 0.5 * (4/3) * pi * density * (canopy_radius_inflated_Rp)^3 * canopy_shape_ratio_epsilon;
 
     Ixxa = (1/5) * ma * (canopy_radius_inflated_Rp)^2 * (1 + canopy_shape_ratio_epsilon^2);
@@ -43,7 +53,6 @@ function dxdt = parachute_dynamics_2(x, U)
     dy_pos = u.*cos(theta).*sin(psi) + v.*(sin(phi).*sin(theta).*sin(psi) + cos(phi).*cos(psi)) + w.*(cos(phi).*sin(theta).*sin(psi) - sin(phi).*cos(psi));
 
     dz_pos = u.*sin(theta) - v.*sin(phi).*cos(theta) - w.*cos(phi).*cos(theta);
-    
 
    %% Moment and Forces function call
     [Force, Moment] = Forces_n_Moments(x, U);
@@ -72,7 +81,13 @@ function dxdt = parachute_dynamics_2(x, U)
 
     dr = (Moment(2*n+1:3*n) - (system_Iyy - system_Ixx).*p.*q) .* (1/(system_Izz + alpha_66));
 
-    dxdt = [dx_pos dy_pos dz_pos du dv dw dphi dtheta dpsi dp dq dr];
+    if flag == 1
+        dxdt = [dx_pos dy_pos dz_pos du dv dw dphi dtheta dpsi dp dq dr]';
+
+    else
+        dxdt = [dx_pos dy_pos dz_pos du dv dw dphi dtheta dpsi dp dq dr];
+    end
+    
 
 
 end

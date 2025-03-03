@@ -1,6 +1,6 @@
 function [Forces, Moments] = Forces_n_Moments(x, U)
 
-    global atmos_table canopy_radius_uninflated_R0 canopy_cop_zp system_mass system_com 
+    global atmos_table canopy_radius_uninflated_R0 canopy_cop_zp system_mass system_com
     
     x_pos = x(:,1); y_pos = x(:,2); z_pos = x(:,3); %postion variables
     
@@ -27,9 +27,9 @@ function [Forces, Moments] = Forces_n_Moments(x, U)
 
     aoa_spatial = acosd(w./V_total); %spatial angle of attack 
 
-    aoa = atand(u./w); %angle of attack (ang between resultant vector and z-axis)
+    aoa = atan2d(u,w); %angle of attack (ang between resultant vector and z-axis)
 
-    sideslip_angle = atand(v./sqrt(u.^2 + w.^2)); %sideslip angle
+    sideslip_angle = atan2d(v,sqrt(u.^2 + w.^2)); %sideslip angle
    
     %% Drag coefficient calculation
     function CD = coeff_drag(aoa_spatial)
@@ -55,7 +55,7 @@ function [Forces, Moments] = Forces_n_Moments(x, U)
     %Implementing Cz for now, in paper Cz is made to be zero(ie. the controllers only produces planar motion)
     
     F_ad_risers = [Cx; Cy; Cz];
-
+    
     F_gravitational = system_mass * g * [-sin(theta); sin(phi).*cos(theta); cos(phi).*cos(theta)];
 
     Forces = F_ad_canopy + F_ad_risers + F_gravitational;

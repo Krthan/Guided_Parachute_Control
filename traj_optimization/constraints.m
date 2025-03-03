@@ -51,8 +51,9 @@ function [C, Ceq] = constraints(x, D, n, BCs)
     x_loop = [x_pos y_pos z_pos u v w phi theta psi p q r];
     U = [Cx Cy Cz];
     dxdt = zeros(n, 12);
+    flag = 0;
 
-    dxdt = parachute_dynamics_2(x_loop, U);
+    dxdt = parachute_dynamics_2(0, x_loop, U, 0, flag);
 
     D1 = D * 2/tf;
 
