@@ -9,7 +9,7 @@ function dxdt = parachute_dynamics_2(t, x, U,  tt1, flag)
         % but here we convert it back into a row vector, to use it with the same dynamics file
         % /%
         x = x';
-        %U = splineInterpolation(tt1, U, t);
+        % U = splineInterpolation(tt1, U, t);
         U = lagrangeInterpolation(tt1, U, t);
     end
     % this runs for psm solver
