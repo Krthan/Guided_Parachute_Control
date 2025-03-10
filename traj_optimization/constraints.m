@@ -42,14 +42,13 @@ function [C, Ceq] = constraints(x, D, n, BCs)
     p = x(9*n +1 : 10*n);
     q = x(10*n +1 : 11*n);
     r = x(11*n +1 : 12*n);
-    Cx = x(12*n +1 : 13*n);
-    Cy = x(13*n +1 : 14*n);
-    Cz = x(14*n+1 : 15*n);
+    lx = x(12*n +1 : 13*n);
+    ly = x(13*n +1 : 14*n);
 
-    tf = x(15*n + 1);
+    tf = x(14*n + 1);
 
     x_loop = [x_pos y_pos z_pos u v w phi theta psi p q r];
-    U = [Cx Cy Cz];
+    U = [lx ly];
     dxdt = zeros(n, 12);
     flag = 0;
 

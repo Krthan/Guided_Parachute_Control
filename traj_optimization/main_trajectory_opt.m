@@ -3,7 +3,7 @@ close all; clear; clc;
 %% Simulation settings
 run('Parameters.m')
 
-n               = 20;       % Number of nodes
+n               = 10;       % Number of nodes
 D               = Dmat(n);  % Differentiation matrix
 t0              = 0;        % start time
 
@@ -20,9 +20,8 @@ psi_initial     = 0;
 p_initial       = 0;
 q_initial       = 0;
 r_initial       = 0;
-Cx_initial      = 0;
-Cy_initial      = 0;
-Cz_initial      = 0;
+lx_initial      = 0;
+ly_initial      = 0;
 
 initial_BCs = [x_pos_initial; y_pos_initial; z_pos_initial;...
                u_initial; v_initial; w_initial;... 
@@ -33,7 +32,7 @@ initial_BCs = [x_pos_initial; y_pos_initial; z_pos_initial;...
 x_pos_final     = 0;
 y_pos_final     = 0;
 z_pos_final     = 0; 
-u_final         = 0; 
+u_final         = 0.1; 
 v_final         = 0;
 w_final         = 0; 
 phi_final       = 0;
@@ -42,9 +41,8 @@ psi_final       = 0;
 p_final         = 0;
 q_final         = 0;
 r_final         = 0;
-Cx_final        = 0;
-Cy_final        = 0;
-Cz_final        = 0;
+lx_final        = 0;
+ly_final        = 0;
 
 final_BCs       = [x_pos_final; y_pos_final; z_pos_final;... 
                    u_final;     v_final;     w_final;...
@@ -67,17 +65,15 @@ p_guess     = zeros(n,1);
 q_guess     = zeros(n,1);
 r_guess     = zeros(n,1);
 
-Cx_guess    = [Cx_initial; 0.5*(Cx_initial + Cx_final)*ones(n-2,1); Cx_final];
-Cy_guess    = [Cy_initial; 0.5*(Cx_initial + Cx_final)*ones(n-2,1); Cy_final];
-Cz_guess    = [Cz_initial; 0.5*(Cz_initial + Cz_final)*ones(n-2,1); Cz_final];
+lx_guess    = [lx_initial; 0.5*(lx_initial + lx_final)*ones(n-2,1); lx_final];
+ly_guess    = [ly_initial; 0.5*(ly_initial + ly_final)*ones(n-2,1); ly_final];
 tf_guess    = 100;
 
 x0          = [x_pos_guess; y_pos_guess; z_pos_guess;...  %initial guess with size 15*n+1
                u_guess; v_guess; w_guess;... 
                phi_guess; theta_guess; psi_guess;...
                p_guess; q_guess; r_guess;...
-               Cx_guess; Cy_guess; Cz_guess;...
-               tf_guess];
+               lx_guess; ly_guess; tf_guess];
 
 %load("x_guess.mat");
 %x0 = x;
@@ -90,12 +86,12 @@ options = optimoptions('fmincon', 'Display','iter', 'MaxFunctionEvaluations', 1e
 
 
 lb = [-2000*ones(n,1); 0*ones(n,1); 0*ones(n,1); -10*ones(n,1); 0*ones(n,1); -100*ones(n,1);
-    -0.5*pi*ones(n,1); -0.5*pi*ones(n,1); -0.5*pi*ones(n,1); -0.5*pi*ones(n,1); -0.5*pi*ones(n,1); -0.5*pi*ones(n,1); -5000*ones(n,1);
-    0*ones(n,1); -5000*ones(n,1); 0];   %lower bound of states, control variables and time
+    -0.5*pi*ones(n,1); -0.5*pi*ones(n,1); -0.5*pi*ones(n,1); -0.5*pi*ones(n,1); -0.5*pi*ones(n,1); -0.5*pi*ones(n,1); -1*ones(n,1);
+    -1*ones(n,1); 0];   %lower bound of states, control variables and time
 
 ub = [2000*ones(n,1); 0*ones(n,1); 2000*ones(n,1); 10*ones(n,1); 0*ones(n,1); 100*ones(n,1);
-    0.5*pi*ones(n,1); 0.5*pi*ones(n,1); 0.5*pi*ones(n,1); 0.5*pi*ones(n,1); 0.5*pi*ones(n,1); 0.5*pi*ones(n,1); 5000*ones(n,1);
-    0*ones(n,1); 5000*ones(n,1); 2000]; %upper bound of states, control variables and time
+    0.5*pi*ones(n,1); 0.5*pi*ones(n,1); 0.5*pi*ones(n,1); 0.5*pi*ones(n,1); 0.5*pi*ones(n,1); 0.5*pi*ones(n,1); 1*ones(n,1);
+    1*ones(n,1); 2000]; %upper bound of states, control variables and time
 
 [x, fval] = fmincon(@(x) objective(x, n), x0, [], [], [], [], lb, ub, @(x) constraints(x, D, n, BCs), options);
 
@@ -112,10 +108,9 @@ psi_result = x(8*n+1 : 9*n);
 p_result = x(9*n+1 : 10*n);
 q_result = x(10*n+1 : 11*n);
 r_result = x(11*n+1 : 12*n);
-Cx_result = x(12*n+1 : 13*n);
-Cy_result = x(13*n+1 : 14*n);
-Cz_result = x(14*n+1:15*n);
-tf = x(15*n + 1);
+lx_result = x(12*n+1 : 13*n);
+ly_result = x(13*n+1 : 14*n);
+tf = x(14*n + 1);
 
 fun_plot("p", x , tf, n, D) %plotting function call
 

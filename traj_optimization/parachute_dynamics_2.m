@@ -1,7 +1,6 @@
 function dxdt = parachute_dynamics_2(t, x, U,  tt1, flag)
     
-    global atmos_table canopy_radius_uninflated_R0 canopy_radius_inflated_Rp canopy_shape_ratio_epsilon canopy_cop_zp k11 k33 k44 k15 k66...
-    system_mass system_com  K system_Ixx system_Iyy system_Izz
+    global atmos_table canopy_radius_uninflated_R0 canopy_radius_inflated_Rp canopy_shape_ratio_epsilon canopy_cop_zp k11 k33 k44 k15 k66 system_mass system_com  K system_Ixx system_Iyy system_Izz
 
 
     if flag == 1 % if flag is 1, we use it for the ode solver, 
@@ -21,7 +20,7 @@ function dxdt = parachute_dynamics_2(t, x, U,  tt1, flag)
         
     p = x(:,10); q = x(:,11); r = x(:,12);  % body angular rate variables
 
-    Cx = U(:,1); Cy = U(:,2); Cz = U(:,3);
+    lx = U(:,1); ly = U(:,2);
 
     %calculating the density at an altitude by interpolation from atmos_table
     
@@ -61,11 +60,11 @@ function dxdt = parachute_dynamics_2(t, x, U,  tt1, flag)
     n = length(u); %change funtion to take n as a variable argument, passed only for trajectory optimization else for 6DOF simulation
 
     %% velocity rates
-    du = (Force(1:n) - (K + alpha_15).*r.*p - (system_mass + alpha_33).*w.*q)./(system_mass + alpha_11) + v.*r;
+    du = (Force(1:n) - (K + alpha_15).*r.*p - (system_mass + alpha_33).*w.*q)/(system_mass + alpha_11) + v.*r;
 
-    dv = (Force(n+1:2*n) + (K + alpha_15).*r.*q + (system_mass + alpha_33).*w.*p)./(system_mass + alpha_11) - u.*r;
+    dv = (Force(n+1:2*n) + (K + alpha_15).*r.*q + (system_mass + alpha_33).*w.*p)/(system_mass + alpha_11) - u.*r;
 
-    dw = (Force(2*n+1:3*n) + (system_mass + alpha_11) .* (u.*q - v.*p) + (K + alpha_15) .* (p.^2 + q.^2))./(system_mass + alpha_33);
+    dw = (Force(2*n+1:3*n) + (system_mass + alpha_11) .* (u.*q - v.*p) + (K + alpha_15) .* (p.^2 + q.^2))/(system_mass + alpha_33);
     
     %% euler angles
     dphi = p + (sin(phi) .* q + r .* cos(phi)) .* tan(theta);
@@ -87,7 +86,5 @@ function dxdt = parachute_dynamics_2(t, x, U,  tt1, flag)
     else
         dxdt = [dx_pos dy_pos dz_pos du dv dw dphi dtheta dpsi dp dq dr];
     end
-    
-
 
 end

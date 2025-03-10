@@ -10,7 +10,7 @@ function [Forces, Moments] = Forces_n_Moments(x, U)
     
     p = x(:,10); q = x(:,11); r = x(:,12);  % body angular rate variables
 
-    Cx = U(:,1); Cy = U(:,2); Cz = U(:,3); %inputs - control forces
+    lx = U(:,1); ly = U(:,2); %inputs - riser lengths
 
     %% Density variation (if any, else fix as 1.225 kg/m^3)
 
@@ -45,7 +45,6 @@ function [Forces, Moments] = Forces_n_Moments(x, U)
     end
 
     CD = coeff_drag(aoa_spatial);
-
     %% Forces calculation
 
     dynamic_pressure = 0.5 * density * V_total.^2;
@@ -54,8 +53,16 @@ function [Forces, Moments] = Forces_n_Moments(x, U)
 
     %Implementing Cz for now, in paper Cz is made to be zero(ie. the controllers only produces planar motion)
     
-    F_ad_risers = [Cx; Cy; Cz];
+    [Riser_force, direction] = Lengths_2_Riser_Force(U);
     
+    F_xy = Riser_force .* direction;
+
+    Fx_risers = F_xy(:,1);
+    Fy_risers = F_xy(:,2);
+    Fz_risers = zeros(size(Fx_risers));
+
+    F_ad_risers = [Fx_risers; Fy_risers; Fz_risers];
+
     F_gravitational = system_mass * g * [-sin(theta); sin(phi).*cos(theta); cos(phi).*cos(theta)];
 
     Forces = F_ad_canopy + F_ad_risers + F_gravitational;
@@ -95,7 +102,7 @@ function [Forces, Moments] = Forces_n_Moments(x, U)
     %% Moments Calculation
 
     M_ad_canopy = [2 * S0 * canopy_radius_uninflated_R0 * dynamic_pressure .* C_roll; 2 * S0 * canopy_radius_uninflated_R0 * dynamic_pressure .*C_pitch; 2 * S0 * canopy_radius_uninflated_R0 * dynamic_pressure .* C_yaw];
-    M_ad_risers = [Cy * canopy_cop_zp; -Cx * canopy_cop_zp; 0*ones(n,1)];
+    M_ad_risers = [Fy_risers * canopy_cop_zp; -Fx_risers * canopy_cop_zp; 0*ones(n,1)];
 
     %{
         M_ad_risers = [0; 0; zp] X F_risers

@@ -82,15 +82,12 @@ function fun_plot(setting, varargin)
         title("Angle rates in body frame: r (in deg/s)")
 
         figure(6)
-        subplot(3, 1, 1);
+        subplot(2, 1, 1);
         plot(tt1, x_p(12*n+1:13*n), "Marker", "square", "Color", "r", "LineWidth", 1.5, "MarkerFaceColor", "r")
-        title("Control force along x: Cx (in Newtons)")
-        subplot(3, 1, 2);
+        title("Riser length change along x: lx (in Newtons)")
+        subplot(2, 1, 2);
         plot(tt1, x_p(13*n+1:14*n), "Marker", "square", "Color", "b", "LineWidth", 1.5, "MarkerFaceColor", "b")
-        title("Control force along y: Cy (in Newtons)")
-        subplot(3, 1, 3);
-        plot(tt1, x_p(14*n+1:15*n), "Marker", "square", "Color", "g", "LineWidth", 1.5, "MarkerFaceColor","g")
-        title("Control force along z: Cz (in Newtons)")
+        title("Riser length change along y: ly (in Newtons)")
 
 
     %% This is for plotting the ode solution
