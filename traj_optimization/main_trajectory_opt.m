@@ -3,7 +3,7 @@ close all; clear; clc;
 %% Simulation settings
 run('Parameters.m')
 
-n               = 10;       % Number of nodes
+n               = 15;       % Number of nodes
 D               = Dmat(n);  % Differentiation matrix
 t0              = 0;        % start time
 
@@ -85,9 +85,11 @@ BCs = [initial_BCs; final_BCs]; %boundary conditions together
 options = optimoptions('fmincon', 'Display','iter', 'MaxFunctionEvaluations', 1e6, 'MaxIterations', 3000, 'Algorithm', 'sqp');
 
 
-lb = [-2000*ones(n,1); 0*ones(n,1); 0*ones(n,1); -10*ones(n,1); 0*ones(n,1); -100*ones(n,1);
-    -0.5*pi*ones(n,1); -0.5*pi*ones(n,1); -0.5*pi*ones(n,1); -0.5*pi*ones(n,1); -0.5*pi*ones(n,1); -0.5*pi*ones(n,1); -1*ones(n,1);
-    -1*ones(n,1); 0];   %lower bound of states, control variables and time
+lb = [-2000*ones(n,1); 0*ones(n,1); 0*ones(n,1); 
+    -10*ones(n,1); 0*ones(n,1); -100*ones(n,1);
+    -0.5*pi*ones(n,1); -0.5*pi*ones(n,1); -0.5*pi*ones(n,1); 
+    -0.5*pi*ones(n,1); -0.5*pi*ones(n,1); -0.5*pi*ones(n,1); 
+    -1*ones(n,1); -1*ones(n,1); 0];   %lower bound of states, control variables and time
 
 ub = [2000*ones(n,1); 0*ones(n,1); 2000*ones(n,1); 10*ones(n,1); 0*ones(n,1); 100*ones(n,1);
     0.5*pi*ones(n,1); 0.5*pi*ones(n,1); 0.5*pi*ones(n,1); 0.5*pi*ones(n,1); 0.5*pi*ones(n,1); 0.5*pi*ones(n,1); 1*ones(n,1);
