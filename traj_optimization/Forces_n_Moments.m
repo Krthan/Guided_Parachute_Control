@@ -25,11 +25,16 @@ function [Forces, Moments] = Forces_n_Moments(x, U)
     
     V_total = sqrt(u.^2 + v.^2 + w.^2); %total velocity
 
-    aoa_spatial = acosd(w./V_total); %spatial angle of attack 
+    aoa_spatial = acosd(w./V_total); %spatial angle of attack
+    aoa_spatial(find(aoa_spatial=='NaN'))=0; 
+    %for i=1:N
+        %if V_total(i)==0
+         %   aoa_spatial(i)=0;
+        %end
+    %end
+    aoa = atan2d(u, w); %angle of attack (ang between resultant vector and z-axis)
 
-    aoa = atan2d(u,w); %angle of attack (ang between resultant vector and z-axis)
-
-    sideslip_angle = atan2d(v,sqrt(u.^2 + w.^2)); %sideslip angle
+    sideslip_angle = atan2d(v, sqrt(u.^2 + w.^2)); %sideslip angle
    
     %% Drag coefficient calculation
     function CD = coeff_drag(aoa_spatial)
@@ -37,9 +42,11 @@ function [Forces, Moments] = Forces_n_Moments(x, U)
         CD = zeros(n,1);
         for i = 1:n
             if aoa_spatial(i) > 30
-                CD(i) = 0.72;
+                %CD(i) = 0.72; %unstable parachute
+                CD(i) = 0.5; % stable parachute
             else
-                CD(i) = -1.975e-07 * aoa_spatial(i)^4 - 3.037e-08 * aoa_spatial(i)^3 + 3.129e-04 * aoa_spatial(i)^2 + 2.918e-05 * aoa_spatial(i) + 0.614;
+                CD(i) = -1.5e-07 * aoa_spatial(i)^4 -1.322e-06 * aoa_spatial(i)^2 + 0.614; %stable parachute configuration
+                CD(i) = -1.975e-07 * aoa_spatial(i)^4 - 3.037e-08 * aoa_spatial(i)^3 + 3.129e-04 * aoa_spatial(i)^2 + 2.918e-05 * aoa_spatial(i) + 0.614; %unstable parachute
             end
         end
     end
@@ -69,20 +76,36 @@ function [Forces, Moments] = Forces_n_Moments(x, U)
 
         for i = 1:n
             if abs(beta(i)) > 35
-                C_roll(i) = - beta(i)/(abs(beta(i))) * 0.02;
-                C_pitch(i) = 1.142e-09 * alpha(i)^4 - 2.100e-06 * alpha(i)^3 - 1.578e-06 * alpha(i)^2 + 2.223e-03 * alpha(i);
+                %C_roll(i) = - beta(i)/(abs(beta(i))) * 0.01;
+                %C_pitch(i) = 1.142e-09 * alpha(i)^4 - 2.100e-06 * alpha(i)^3 - 1.578e-06 * alpha(i)^2 + 2.223e-03 * alpha(i);
+
+                % stable configuration
+                C_roll(i) = -beta(i)/(abs(beta(i))) * 0.04;
+                C_pitch(i) = -7.5e-07 * alpha(i)^3 -1.0e-03 * alpha(i);
             
             elseif abs(alpha(i)) > 35
-                C_roll(i) = 1.142e-09 * beta(i)^4 - 2.100e-06 * beta(i)^3 - 1.578e-06 * beta(i)^2 + 2.223e-03 * beta(i);
-                C_pitch(i) = - alpha(i)/(abs(alpha(i))) * 0.02;
+                %C_roll(i) = 1.142e-09 * beta(i)^4 - 2.100e-06 * beta(i)^3 - 1.578e-06 * beta(i)^2 + 2.223e-03 * beta(i);
+                %C_pitch(i) = - alpha(i)/(abs(alpha(i))) * 0.01;
+
+                % stable configuration
+                C_roll(i) = -7.5e-07 * beta(i)^3 -1.0e-03 * beta(i);
+                C_pitch(i) = - alpha(i)/(abs(alpha(i))) * 0.04;
 
             elseif (abs(beta(i)) > 35 & abs(alpha(i)) > 35)
-                C_pitch(i) = - alpha(i)/(abs(alpha(i))) * 0.0;
-                C_roll(i) = - beta(i)/(abs(beta(i))) * 0.0;
+                %C_pitch(i) = - alpha(i)/(abs(alpha(i))) * 0.01;
+                %C_roll(i) = - beta(i)/(abs(beta(i))) * 0.01;
+
+                %stable configuration
+                C_pitch(i) = - alpha(i)/(abs(alpha(i))) * 0.04;
+                C_roll(i) = - beta(i)/(abs(beta(i))) * 0.04;
 
             else
-                C_roll(i) = 1.142e-09 * beta(i)^4 - 2.100e-06 * beta(i)^3 - 1.578e-06 * beta(i)^2 + 2.223e-03 * beta(i);
-                C_pitch(i) = 1.142e-09 * alpha(i)^4 - 2.100e-06 * alpha(i)^3 - 1.578e-06 * alpha(i)^2 + 2.223e-03 * alpha(i);
+                %C_roll(i) = 1.142e-09 * beta(i)^4 - 2.100e-06 * beta(i)^3 - 1.578e-06 * beta(i)^2 + 2.223e-03 * beta(i);
+                %C_pitch(i) = 1.142e-09 * alpha(i)^4 - 2.100e-06 * alpha(i)^3 - 1.578e-06 * alpha(i)^2 + 2.223e-03 * alpha(i);
+
+                %stable configuration
+                C_roll(i) = -7.5e-07 * beta(i)^3 - 1.0e-03 * beta(i);
+                C_pitch(i) = -7.5e-07 * alpha(i)^3 - 1.0e-03 * alpha(i);
             end
         end
     end

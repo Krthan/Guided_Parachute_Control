@@ -1,5 +1,5 @@
 clc; clear all; close all;
-load("x_20_nodes.mat")
+load("x_15_stable.mat")
 run('Parameters.m')
 x0 = reshape(initial_BCs, 1, []);
 n_sol = n;
@@ -19,6 +19,7 @@ U = [Cx Cy Cz];
 flag = 1;
 options = odeset('AbsTol', 1e-10, 'RelTol', 1e-10);
 [t, x_ans] = ode45(@(t, x)parachute_dynamics_2(t, x, U, tt1, flag), t_span, x0,options);
+
 %%
 U_int = lagrangeInterpolation(tt1, U, t);
 fun_plot("b", x, tf, n_sol, D, x_ans, t, U_int)

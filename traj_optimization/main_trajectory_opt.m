@@ -3,17 +3,17 @@ close all; clear; clc;
 %% Simulation settings
 run('Parameters.m')
 
-n               = 20;       % Number of nodes
+n               = 15;       % Number of nodes
 D               = Dmat(n);  % Differentiation matrix
 t0              = 0;        % start time
 
 %% Initial and final conditions
-x_pos_initial   = 2000; 
+x_pos_initial   = 0; 
 y_pos_initial   = 0;
-z_pos_initial   = 4000;
-u_initial       = -5;
+z_pos_initial   = 1700;
+u_initial       = 0;
 v_initial       = 0;
-w_initial       = 0;
+w_initial       = 6.5;
 phi_initial     = 0;
 theta_initial   = 0;
 psi_initial     = 0;
@@ -35,7 +35,7 @@ y_pos_final     = 0;
 z_pos_final     = 0; 
 u_final         = 0; 
 v_final         = 0;
-w_final         = 0; 
+w_final         = 6.5; 
 phi_final       = 0;
 theta_final     = 0;
 psi_final       = 0;
@@ -86,16 +86,16 @@ x0          = [x_pos_guess; y_pos_guess; z_pos_guess;...  %initial guess with si
 
 BCs = [initial_BCs; final_BCs]; %boundary conditions together
 
-options = optimoptions('fmincon', 'Display','iter', 'MaxFunctionEvaluations', 1e6, 'MaxIterations', 3000, 'Algorithm', 'sqp');
+options = optimoptions('fmincon', 'Display','iter', 'MaxFunctionEvaluations', 1e6, 'MaxIterations', 3000);
 
 
-lb = [-2000*ones(n,1); 0*ones(n,1); 0*ones(n,1); -10*ones(n,1); 0*ones(n,1); -100*ones(n,1);
-    -0.5*pi*ones(n,1); -0.5*pi*ones(n,1); -0.5*pi*ones(n,1); -0.5*pi*ones(n,1); -0.5*pi*ones(n,1); -0.5*pi*ones(n,1); -5000*ones(n,1);
-    0*ones(n,1); -5000*ones(n,1); 0];   %lower bound of states, control variables and time
+lb = [-0.1*ones(n,1); 0*ones(n,1); 0*ones(n,1); -0.1*ones(n,1); 0*ones(n,1); -100*ones(n,1);
+    -0.5*pi*ones(n,1); -0.5*pi*ones(n,1); -0.5*pi*ones(n,1); -0.5*pi*ones(n,1); -0.5*pi*ones(n,1); -0.5*pi*ones(n,1); 0*ones(n,1);
+    0*ones(n,1); -10000*ones(n,1); 0];   %lower bound of states, control variables and time
 
-ub = [2000*ones(n,1); 0*ones(n,1); 2000*ones(n,1); 10*ones(n,1); 0*ones(n,1); 100*ones(n,1);
-    0.5*pi*ones(n,1); 0.5*pi*ones(n,1); 0.5*pi*ones(n,1); 0.5*pi*ones(n,1); 0.5*pi*ones(n,1); 0.5*pi*ones(n,1); 5000*ones(n,1);
-    0*ones(n,1); 5000*ones(n,1); 2000]; %upper bound of states, control variables and time
+ub = [0.1*ones(n,1); 0*ones(n,1); 2000*ones(n,1); 0.1*ones(n,1); 0*ones(n,1); 100*ones(n,1);
+    0.5*pi*ones(n,1); 0.5*pi*ones(n,1); 0.5*pi*ones(n,1); 0.5*pi*ones(n,1); 0.5*pi*ones(n,1); 0.5*pi*ones(n,1); 0*ones(n,1);
+    0*ones(n,1); 10000*ones(n,1); 2000]; %upper bound of states, control variables and time
 
 [x, fval] = fmincon(@(x) objective(x, n), x0, [], [], [], [], lb, ub, @(x) constraints(x, D, n, BCs), options);
 

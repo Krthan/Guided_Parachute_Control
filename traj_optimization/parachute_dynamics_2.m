@@ -83,7 +83,6 @@ function dxdt = parachute_dynamics_2(t, x, U,  tt1, flag)
 
     if flag == 1
         dxdt = [dx_pos dy_pos dz_pos du dv dw dphi dtheta dpsi dp dq dr]';
-
     else
         dxdt = [dx_pos dy_pos dz_pos du dv dw dphi dtheta dpsi dp dq dr];
     end
