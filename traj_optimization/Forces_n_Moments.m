@@ -26,7 +26,7 @@ function [Forces, Moments] = Forces_n_Moments(x, U)
     V_total = sqrt(u.^2 + v.^2 + w.^2); %total velocity
 
     aoa_spatial = acosd(w./V_total); %spatial angle of attack
-    aoa_spatial(find(aoa_spatial=='NaN'))=0; 
+    aoa_spatial(find(isnan(aoa_spatial)))=0; 
     %for i=1:N
         %if V_total(i)==0
          %   aoa_spatial(i)=0;
@@ -46,7 +46,7 @@ function [Forces, Moments] = Forces_n_Moments(x, U)
                 CD(i) = 0.5; % stable parachute
             else
                 CD(i) = -1.5e-07 * aoa_spatial(i)^4 -1.322e-06 * aoa_spatial(i)^2 + 0.614; %stable parachute configuration
-                CD(i) = -1.975e-07 * aoa_spatial(i)^4 - 3.037e-08 * aoa_spatial(i)^3 + 3.129e-04 * aoa_spatial(i)^2 + 2.918e-05 * aoa_spatial(i) + 0.614; %unstable parachute
+                %CD(i) = -1.975e-07 * aoa_spatial(i)^4 - 3.037e-08 * aoa_spatial(i)^3 + 3.129e-04 * aoa_spatial(i)^2 + 2.918e-05 * aoa_spatial(i) + 0.614; %unstable parachute
             end
         end
     end
@@ -58,6 +58,7 @@ function [Forces, Moments] = Forces_n_Moments(x, U)
     dynamic_pressure = 0.5 * density * V_total.^2;
     S0 = pi * canopy_radius_uninflated_R0^2;
     F_ad_canopy = [-CD .* dynamic_pressure .* (S0./V_total) .* u; -CD .* dynamic_pressure .* (S0./V_total) .* v; -CD .* dynamic_pressure .* (S0./V_total) .* w];
+    F_ad_canopy(find(isnan(F_ad_canopy)))=0;
 
     %Implementing Cz for now, in paper Cz is made to be zero(ie. the controllers only produces planar motion)
     

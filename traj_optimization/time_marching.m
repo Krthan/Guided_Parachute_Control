@@ -13,6 +13,7 @@ t0 = 0;
 t1 = legslb(n_sol);
 tt1 = ((tf-t0).*t1 + (tf+t0))./2;
 
+%t_span = 0:0.01:tf;
 t_span = 0:0.01:tf;
 U = [Cx Cy Cz];
 
