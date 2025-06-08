@@ -1,4 +1,4 @@
-function dxdt = parachute_dynamics_2(t, x, U,  tt1, flag)
+function dxdt = parachute_dynamics_2(x, flag)
     
     global atmos_table canopy_radius_uninflated_R0 canopy_radius_inflated_Rp canopy_shape_ratio_epsilon canopy_cop_zp k11 k33 k44 k15 k66...
     system_mass system_com  K system_Ixx system_Iyy system_Izz
@@ -13,16 +13,14 @@ function dxdt = parachute_dynamics_2(t, x, U,  tt1, flag)
         %U = lagrangeInterpolation(tt1, U, t);
         U = [0 0 0];
     end
-    % this runs for psm solver
-    x_pos = x(:,1); y_pos = x(:,2); z_pos = x(:,3); %postion variables
         
-    u = x(:,4); v = x(:,5); w = x(:,6); %velocity variables 
-        
-    phi = x(:,7); theta = x(:,8); psi = x(:,9); %attitude/euler angles variables
-        
-    p = x(:,10); q = x(:,11); r = x(:,12);  % body angular rate variables
+    u = x(:,1); v = x(:,2); w = x(:,3); %velocity variables 
+    
+    phi = x(:,4); theta = x(:,5); psi = x(:,6); %attitude/euler angles variables
+    
+    p = x(:,7); q = x(:,8); r = x(:,9);  % body angular rate variables
 
-    Cx = U(:,1); Cy = U(:,2); Cz = U(:,3);
+    Cx = U(:,1); Cy = U(:,2); Cz = U(:,3); %inputs - control forces
 
     %calculating the density at an altitude by interpolation from atmos_table
     
@@ -50,14 +48,14 @@ function dxdt = parachute_dynamics_2(t, x, U,  tt1, flag)
 
     %% body frame velocity to inertial frame velocity
 
-    dx_pos = u.*cos(theta).*cos(psi) + v.*(sin(phi).*sin(theta).*cos(psi) - cos(phi).*sin(psi)) + w.*(cos(phi).*sin(theta).*cos(psi) + sin(phi).*sin(psi));
+    % dx_pos = u.*cos(theta).*cos(psi) + v.*(sin(phi).*sin(theta).*cos(psi) - cos(phi).*sin(psi)) + w.*(cos(phi).*sin(theta).*cos(psi) + sin(phi).*sin(psi));
 
-    dy_pos = u.*cos(theta).*sin(psi) + v.*(sin(phi).*sin(theta).*sin(psi) + cos(phi).*cos(psi)) + w.*(cos(phi).*sin(theta).*sin(psi) - sin(phi).*cos(psi));
+    % dy_pos = u.*cos(theta).*sin(psi) + v.*(sin(phi).*sin(theta).*sin(psi) + cos(phi).*cos(psi)) + w.*(cos(phi).*sin(theta).*sin(psi) - sin(phi).*cos(psi));
 
-    dz_pos = u.*sin(theta) - v.*sin(phi).*cos(theta) - w.*cos(phi).*cos(theta);
+    % dz_pos = u.*sin(theta) - v.*sin(phi).*cos(theta) - w.*cos(phi).*cos(theta);
 
    %% Moment and Forces function call
-    [Force, Moment] = Forces_n_Moments(x, U);
+    [Force, Moment] = Forces_n_Moments_eq(x, U);
 
     %%
     n = length(u); %change funtion to take n as a variable argument, passed only for trajectory optimization else for 6DOF simulation
@@ -84,11 +82,9 @@ function dxdt = parachute_dynamics_2(t, x, U,  tt1, flag)
     dr = (Moment(2*n+1:3*n) - (system_Iyy - system_Ixx).*p.*q) .* (1/(system_Izz + alpha_66));
 
     if flag == 1
-        dxdt = [dx_pos dy_pos dz_pos du dv dw dphi dtheta dpsi dp dq dr]';
+        dxdt = [du dv dw dphi dtheta dpsi dp dq dr]';
     else
         dxdt = [dx_pos dy_pos dz_pos du dv dw dphi dtheta dpsi dp dq dr];
     end
     
-
-
 end
