@@ -92,7 +92,7 @@ function [C, Ceq] = constraints(x, D, n, BCs)
 
     Ceq28 = abs(u(n)) - u_final; %
 
-    Ceq29 = v(n) - v_final;
+    Ceq29 = abs(v(n)) - v_final;
 
     Ceq30 = abs(w(n)) - w_final;   %
 
@@ -109,9 +109,9 @@ function [C, Ceq] = constraints(x, D, n, BCs)
 
 
    % C = [Ceq28; Ceq30]; % lesser than zero constraints
-    C = [C_theta];
+    C = [];
     Ceq = [Ceq1; Ceq2; Ceq3; Ceq4; Ceq5; Ceq6; Ceq7; Ceq8; Ceq9; Ceq10; Ceq11; Ceq12;
-       Ceq13; Ceq14; Ceq15; Ceq16; Ceq17; Ceq18; Ceq25; Ceq27];   %equality constraints
+       Ceq13; Ceq14; Ceq15; Ceq16; Ceq17; Ceq18; Ceq19; Ceq20; Ceq21; Ceq22; Ceq23; Ceq24; Ceq25; Ceq26; Ceq27];   %equality constraints
 
 
 end

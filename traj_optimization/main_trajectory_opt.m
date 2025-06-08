@@ -3,13 +3,13 @@ close all; clear; clc;
 %% Simulation settings
 run('Parameters.m')
 
-n               = 15;       % Number of nodes
+n               = 20;       % Number of nodes
 D               = Dmat(n);  % Differentiation matrix
 t0              = 0;        % start time
 
 %% Initial and final conditions
-x_pos_initial   = 0; 
-y_pos_initial   = 0;
+x_pos_initial   = 270; 
+y_pos_initial   = 200;
 z_pos_initial   = 1700;
 u_initial       = 0;
 v_initial       = 0;
@@ -79,25 +79,31 @@ x0          = [x_pos_guess; y_pos_guess; z_pos_guess;...  %initial guess with si
                Cx_guess; Cy_guess; Cz_guess;...
                tf_guess];
 
-%load("x_guess.mat");
+%load("report_sol_15_2.mat");
 %x0 = x;
 
 %x0 = getGuess_higher_nodes(15, n);
 
 BCs = [initial_BCs; final_BCs]; %boundary conditions together
 
-options = optimoptions('fmincon', 'Display','iter', 'MaxFunctionEvaluations', 1e6, 'MaxIterations', 3000);
+options = optimoptions('fmincon', 'Display','iter', 'MaxFunctionEvaluations', 1e6, 'MaxIterations', 1000, 'ConstraintTolerance', 1e-03, 'Algorithm', 'sqp', 'StepTolerance', 1e-12);
 
+lb = [-1500; -1500; 0; -10; -10; -15;
+    -0.5*pi; -0.5*pi; -1*pi; -0.1*pi; -0.1*pi; -0.1*pi; 
+    -2850; -2850; 0];   %lower bound of states, control variables and time
 
-lb = [-0.1*ones(n,1); 0*ones(n,1); 0*ones(n,1); -0.1*ones(n,1); 0*ones(n,1); -100*ones(n,1);
-    -0.5*pi*ones(n,1); -0.5*pi*ones(n,1); -0.5*pi*ones(n,1); -0.5*pi*ones(n,1); -0.5*pi*ones(n,1); -0.5*pi*ones(n,1); 0*ones(n,1);
-    0*ones(n,1); -10000*ones(n,1); 0];   %lower bound of states, control variables and time
+lb = [repelem(lb,n); 0];
 
-ub = [0.1*ones(n,1); 0*ones(n,1); 2000*ones(n,1); 0.1*ones(n,1); 0*ones(n,1); 100*ones(n,1);
-    0.5*pi*ones(n,1); 0.5*pi*ones(n,1); 0.5*pi*ones(n,1); 0.5*pi*ones(n,1); 0.5*pi*ones(n,1); 0.5*pi*ones(n,1); 0*ones(n,1);
-    0*ones(n,1); 10000*ones(n,1); 2000]; %upper bound of states, control variables and time
+ub = [1500; 1500; 3000; 0; 0; 15;
+    0.5*pi; 0.5*pi; 1*pi; 0.1*pi; 0.1*pi; 0.1*pi; 
+    2850; 2850; 0]; %upper bound of states, control variables and time
 
-[x, fval] = fmincon(@(x) objective(x, n), x0, [], [], [], [], lb, ub, @(x) constraints(x, D, n, BCs), options);
+ub = [repelem(ub,n); 2000];
+
+tic
+[x, fval] = fmincon(@(x) objective(x, n, D, initial_BCs, final_BCs), x0, [], [], [], [], lb, ub, @(x) constraints(x, D, n, BCs), options);
+elap_time = toc;
+disp(elap_time)
 
 % assigning variables from the optimization result
 x_pos_result = x(1:n);

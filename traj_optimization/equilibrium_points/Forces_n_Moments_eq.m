@@ -1,14 +1,12 @@
-function [Forces, Moments] = Forces_n_Moments(x, U)
+function [Forces, Moments] = Forces_n_Moments_eq(x, U)
 
     global atmos_table canopy_radius_uninflated_R0 canopy_cop_zp system_mass system_com
     
-    x_pos = x(:,1); y_pos = x(:,2); z_pos = x(:,3); %postion variables
+    u = x(:,1); v = x(:,2); w = x(:,3); %velocity variables 
     
-    u = x(:,4); v = x(:,5); w = x(:,6); %velocity variables 
+    phi = x(:,4); theta = x(:,5); psi = x(:,6); %attitude/euler angles variables
     
-    phi = x(:,7); theta = x(:,8); psi = x(:,9); %attitude/euler angles variables
-    
-    p = x(:,10); q = x(:,11); r = x(:,12);  % body angular rate variables
+    p = x(:,7); q = x(:,8); r = x(:,9);  % body angular rate variables
 
     Cx = U(:,1); Cy = U(:,2); Cz = U(:,3); %inputs - control forces
 
@@ -18,6 +16,7 @@ function [Forces, Moments] = Forces_n_Moments(x, U)
     
     %density = interp1(atmos_table.Altitude, atmos_table.Density, abs(z_pos/1000));
     density = 1.225;
+
     g = 9.81;
 
     %% Calculating total velocity and angles in degrees
@@ -61,8 +60,8 @@ function [Forces, Moments] = Forces_n_Moments(x, U)
 
     %Implementing Cz for now, in paper Cz is made to be zero(ie. the controllers only produces planar motion)
     F_ad_risers = [Cx; Cy; Cz];
-
-    F_gravitational = (system_mass * g) * [-sin(theta); sin(phi).*cos(theta); cos(phi).*cos(theta)];
+    
+    F_gravitational = system_mass * g * [-sin(theta); sin(phi).*cos(theta); cos(phi).*cos(theta)];
 
     Forces = F_ad_canopy + F_ad_risers + F_gravitational;
 

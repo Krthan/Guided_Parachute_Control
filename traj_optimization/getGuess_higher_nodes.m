@@ -1,5 +1,5 @@
 function x0 = getGuess_higher_nodes(n_1, n_2)
-    load("x_guess.mat");
+    load("report_sol_15_2.mat");
     t0 = 0; tf = x(15*n_1+1);
     t1 = legslb(n_1);
 

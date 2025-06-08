@@ -129,13 +129,13 @@ function fun_plot(setting, varargin)
 
         figure(2)
         subplot(3, 1, 1);
-        plot(t_arr(1:end-1), xdot, "Color", "r", "LineWidth", 1.5)
+        plot(t_arr(1:end-2), xdot(1:end-1), "Color", "r", "LineWidth", 1.5)
         title("Inertial frame velocity: $\dot{x}$ (in m/s)", "Interpreter", "latex");
         subplot(3, 1, 2);
-        plot(t_arr(1:end-1), ydot, "Color", "b", "LineWidth", 1.5)
+        plot(t_arr(1:end-2), ydot(1:end-1), "Color", "b", "LineWidth", 1.5)
         title("Inertial frame velocity: $\dot{y}$ (in m/s)", "Interpreter", "latex");
         subplot(3, 1, 3);
-        plot(t_arr(1:end-1), zdot, "Color", "g", "LineWidth", 1.5)
+        plot(t_arr(1:end-2), zdot(1:end-1), "Color", "g", "LineWidth", 1.5)
         title("Inertial frame velocity: $\dot{z}$ (in m/s)", "Interpreter", "latex");
 
         figure(3)
