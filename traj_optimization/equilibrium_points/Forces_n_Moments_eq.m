@@ -1,3 +1,5 @@
+% This is a copy of the Forces and Moments Equations used in the main trajectory optimization
+
 function [Forces, Moments] = Forces_n_Moments_eq(x, U)
 
     global atmos_table canopy_radius_uninflated_R0 canopy_cop_zp system_mass system_com

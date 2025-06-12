@@ -1,5 +1,5 @@
 clc; clear all; close all;
-load("x_15_stable.mat")
+load("report_sol_15_2.mat")
 run('Parameters.m')
 x0 = reshape(initial_BCs, 1, []);
 n_sol = n;

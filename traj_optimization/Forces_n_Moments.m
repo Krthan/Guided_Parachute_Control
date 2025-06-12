@@ -1,3 +1,15 @@
+% This file is calculates the forces and moments acting on the parachute-payload system
+
+%{ 
+Aerodynamic forces calculated from the coeff of drag
+Aerodynamic moments of the canopy calculated from the coeff of roll, pitch and yaw
+The coefficients are functions of the 3 flight angles: spatial AoA, AoA and sideslip angle
+
+The configuration of a stable and unstable parachute is given, using a stable parachute actively
+
+The forces and moments vector are used in the parachute_dynamics_2.m file
+%}
+
 function [Forces, Moments] = Forces_n_Moments(x, U)
 
     global atmos_table canopy_radius_uninflated_R0 canopy_cop_zp system_mass system_com
@@ -17,7 +29,7 @@ function [Forces, Moments] = Forces_n_Moments(x, U)
     %calculating the density at an altitude by interpolation from atmos_table
     
     %density = interp1(atmos_table.Altitude, atmos_table.Density, abs(z_pos/1000));
-    density = 1.225;
+    density = 1.225; %constant density
     g = 9.81;
 
     %% Calculating total velocity and angles in degrees
@@ -26,11 +38,7 @@ function [Forces, Moments] = Forces_n_Moments(x, U)
 
     aoa_spatial = acosd(w./V_total); %spatial angle of attack
     aoa_spatial(find(isnan(aoa_spatial)))=0; 
-    %for i=1:N
-        %if V_total(i)==0
-         %   aoa_spatial(i)=0;
-        %end
-    %end
+
     aoa = atan2d(u, w); %angle of attack (ang between resultant vector and z-axis)
 
     sideslip_angle = atan2d(v, sqrt(u.^2 + w.^2)); %sideslip angle
@@ -116,13 +124,16 @@ function [Forces, Moments] = Forces_n_Moments(x, U)
 
     %% Moments Calculation
 
-    M_ad_canopy = [2 * S0 * canopy_radius_uninflated_R0 * dynamic_pressure .* C_roll; 2 * S0 * canopy_radius_uninflated_R0 * dynamic_pressure .*C_pitch; 2 * S0 * canopy_radius_uninflated_R0 * dynamic_pressure .* C_yaw];
-    M_ad_risers = [Cy * canopy_cop_zp; -Cx * canopy_cop_zp; 0*ones(n,1)];
+    M_ad_canopy = [2 * S0 * canopy_radius_uninflated_R0 * dynamic_pressure .* C_roll; 
+    2 * S0 * canopy_radius_uninflated_R0 * dynamic_pressure .*C_pitch; 
+    2 * S0 * canopy_radius_uninflated_R0 * dynamic_pressure .* C_yaw]; %Canopy aerodynamics moment
 
-    M_ad = M_ad_canopy + M_ad_risers;
+    M_ad_risers = [Cy * canopy_cop_zp; -Cx * canopy_cop_zp; 0*ones(n,1)]; %Riser aerodynamic moment, control forces moment
 
-    M_gravitational = [F_gravitational(n+1:2*n)*system_com; -F_gravitational(1:n)*system_com; 0*ones(n,1)];
+    M_ad = M_ad_canopy + M_ad_risers; %Total aerodynamic moment
 
-    Moments = M_ad + M_gravitational;
+    M_gravitational = [F_gravitational(n+1:2*n)*system_com; -F_gravitational(1:n)*system_com; 0*ones(n,1)]; %Gravitational moment
+
+    Moments = M_ad + M_gravitational; % Total moment (aerodynamic + gravitational)
 
 end

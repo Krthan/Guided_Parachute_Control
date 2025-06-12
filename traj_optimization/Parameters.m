@@ -13,8 +13,8 @@ The conversion of the MOI is done in the function call
 %}
 global atmos_table canopy_radius_uninflated_R0 canopy_radius_inflated_Rp canopy_shape_ratio_epsilon canopy_cop_zp k11 k33 k44 k15 k66...
     system_mass system_com  K system_Ixx system_Iyy system_Izz
-%% Density variation wrt Altitude
 
+%% Density variation wrt Altitude
 atmos_table = readtable('atmos.dat.txt', 'ReadVariableNames', false);
 atmos_table.Properties.VariableNames = {'Altitude', 'Temperature', 'Pressure', 'Density'};
 
@@ -68,31 +68,36 @@ payload_Ibb                             = 245.59;
 payload_Icc                             = 245.59;
 
 %% Calculating Mass and Moment of inertia components with apparent mass
+system_mass = canopy_mass_m1 + suspensionlines_mass_m2 + pma_mass_m3 + payload_mass_m4; %Total mass of the system
 
-    system_mass = canopy_mass_m1 + suspensionlines_mass_m2 + pma_mass_m3 + payload_mass_m4;
+system_com = (canopy_mass_m1 * canopy_com_z1 + suspensionlines_mass_m2 * suspensionlines_com_z2 + ... 
+            pma_mass_m3 * pma_com_z3 + payload_mass_m4 * payload_com_z4)/system_mass ; %{Location of center of mass from origin%}
 
-    system_com = (canopy_mass_m1 * canopy_com_z1 + suspensionlines_mass_m2 * suspensionlines_com_z2 + pma_mass_m3 * pma_com_z3 + payload_mass_m4 * payload_com_z4)/system_mass ;
+K = system_mass * system_com; % constant used for apparent mass terms
 
-    K = system_mass * system_com;
+% Canopy MOI
+canopy_Ixx = canopy_Iaa + canopy_mass_m1 * canopy_com_z1^2;
+canopy_Iyy = canopy_Ibb + canopy_mass_m1 * canopy_com_z1^2;                                             
+canopy_Izz = canopy_Icc; 
 
-    canopy_Ixx = canopy_Iaa + canopy_mass_m1 * canopy_com_z1^2;
-    canopy_Iyy = canopy_Ibb + canopy_mass_m1 * canopy_com_z1^2;
-    canopy_Izz = canopy_Icc;
+%Suspensionlines MOI
+suspensionlines_Ixx = suspensionlines_Iaa + suspensionlines_mass_m2 * suspensionlines_com_z2^2; %s
+suspensionlines_Iyy = suspensionlines_Ibb + suspensionlines_mass_m2 * suspensionlines_com_z2^2;
+suspensionlines_Izz = suspensionlines_Icc;
 
-    suspensionlines_Ixx = suspensionlines_Iaa + suspensionlines_mass_m2 * suspensionlines_com_z2^2;
-    suspensionlines_Iyy = suspensionlines_Ibb + suspensionlines_mass_m2 * suspensionlines_com_z2^2;
-    suspensionlines_Izz = suspensionlines_Icc;
+%PMA MOI
+pma_Ixx = pma_Iaa + pma_mass_m3 * pma_com_z3^2;
+pma_Iyy = pma_Ibb + pma_mass_m3 * pma_com_z3^2;
+pma_Izz = pma_Icc;
 
-    pma_Ixx = pma_Iaa + pma_mass_m3 * pma_com_z3^2;
-    pma_Iyy = pma_Ibb + pma_mass_m3 * pma_com_z3^2;
-    pma_Izz = pma_Icc;
+%Payload MOI
+payload_Ixx = payload_Iaa + payload_mass_m4 * payload_com_z4^2;
+payload_Iyy = payload_Ibb + payload_mass_m4 * payload_com_z4^2;
+payload_Izz = payload_Icc;
 
-    payload_Ixx = payload_Iaa + payload_mass_m4 * payload_com_z4^2;
-    payload_Iyy = payload_Ibb + payload_mass_m4 * payload_com_z4^2;
-    payload_Izz = payload_Icc;
-
-    system_Ixx = canopy_Ixx + suspensionlines_Ixx + pma_Ixx + payload_Ixx;
-    system_Iyy = canopy_Iyy + suspensionlines_Iyy + pma_Iyy + payload_Iyy;
-    system_Izz = canopy_Izz + suspensionlines_Izz + pma_Izz + payload_Izz;
+%Total system MOI
+system_Ixx = canopy_Ixx + suspensionlines_Ixx + pma_Ixx + payload_Ixx;
+system_Iyy = canopy_Iyy + suspensionlines_Iyy + pma_Iyy + payload_Iyy;
+system_Izz = canopy_Izz + suspensionlines_Izz + pma_Izz + payload_Izz;
 
 

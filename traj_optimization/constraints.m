@@ -1,9 +1,20 @@
+% This is the constraints file used in the trajectory optimization %
+%{ 
+Returns the system dyanmics constraints, initial conditions and final conditions 
+Ceq1 - Ceq12 -> system dynamics/path constraints
+Ceq13 - Ceq24 -> initial conditions
+Ceq25 - Ceq36 -> final conditions 
+
+These are all equality constraints, can add inequality constraints to limit states, rate of change of states and so on
+
+%}
+
 function [C, Ceq] = constraints(x, D, n, BCs)
 
     global atmos_table canopy_radius_uninflated_R0 canopy_radius_inflated_Rp canopy_shape_ratio_epsilon canopy_cop_zp k11 k33 k44 k15 k66...
     system_mass system_com  K system_Ixx system_Iyy system_Izz 
 
-   %%
+   %% Initializations of variables
     x_pos_initial = BCs(1);
     y_pos_initial = BCs(2);
     z_pos_initial = BCs(3);
@@ -48,15 +59,19 @@ function [C, Ceq] = constraints(x, D, n, BCs)
 
     tf = x(15*n + 1);
 
-    x_loop = [x_pos y_pos z_pos u v w phi theta psi p q r];
-    U = [Cx Cy Cz];
-    dxdt = zeros(n, 12);
-    flag = 0;
+    %% System dynamics function call
+    x_loop = [x_pos y_pos z_pos u v w phi theta psi p q r]; %making a x vector which is Nx12, states
+    U = [Cx Cy Cz]; %Control forces vector
+    dxdt = zeros(n, 12); %initialize derivative of states
+    flag = 0; %flag for using the correct setting inside the dynamcics equation
 
-    dxdt = parachute_dynamics_2(0, x_loop, U, 0, flag);
+    dxdt = parachute_dynamics_2(0, x_loop, U, 0, flag); %system dynamics call
 
-    D1 = D * 2/tf;
+    D1 = D * 2/tf; %Time-normalized differentiation matrix
 
+    %% Constraints (path constraints and initial/final conditions)
+
+    %Path/System constraints
     Ceq1 = D1*x_pos - dxdt(:,1);
     Ceq2 = D1*y_pos - dxdt(:,2);
     Ceq3 = D1*z_pos - dxdt(:,3);
@@ -73,6 +88,7 @@ function [C, Ceq] = constraints(x, D, n, BCs)
     Ceq11 = D1*q - dxdt(:,11);
     Ceq12 = D1*r - dxdt(:,12);
 
+    %Initial conditions
     Ceq13 = x_pos(1) - x_pos_initial;
     Ceq14 = y_pos(1) - y_pos_initial;
     Ceq15 = z_pos(1) - z_pos_initial;
@@ -86,15 +102,14 @@ function [C, Ceq] = constraints(x, D, n, BCs)
     Ceq23 = q(1) - q_initial;
     Ceq24 = r(1) - r_initial;
 
+    %Final conditions
     Ceq25 = x_pos(n) - x_pos_final;
     Ceq26 = y_pos(n) - y_pos_final;
     Ceq27 = z_pos(n) - z_pos_final;
 
-    Ceq28 = abs(u(n)) - u_final; %
-
-    Ceq29 = abs(v(n)) - v_final;
-
-    Ceq30 = abs(w(n)) - w_final;   %
+    Ceq28 = u(n) - u_final; 
+    Ceq29 = v(n) - v_final;
+    Ceq30 = w(n) - w_final;
 
     Ceq31 = phi(n) - phi_final;
     Ceq32 = theta(n) - theta_final;
@@ -107,11 +122,9 @@ function [C, Ceq] = constraints(x, D, n, BCs)
     C_u = abs(D1*u) - 0.5*ones(n,1);
     C_w = abs(D1*w) - 0.5*ones(n,1);
 
-
-   % C = [Ceq28; Ceq30]; % lesser than zero constraints
-    C = [];
+    C = []; %inequality constraints
     Ceq = [Ceq1; Ceq2; Ceq3; Ceq4; Ceq5; Ceq6; Ceq7; Ceq8; Ceq9; Ceq10; Ceq11; Ceq12;
-       Ceq13; Ceq14; Ceq15; Ceq16; Ceq17; Ceq18; Ceq19; Ceq20; Ceq21; Ceq22; Ceq23; Ceq24; Ceq25; Ceq26; Ceq27];   %equality constraints
-
+        Ceq13; Ceq14; Ceq15; Ceq16; Ceq17; Ceq18; Ceq19; Ceq20; Ceq21; Ceq22; Ceq23; Ceq24; 
+        Ceq25; Ceq26; Ceq27];   %equality constraints
 
 end
